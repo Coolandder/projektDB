@@ -1,0 +1,93 @@
+CREATE TABLE klienci(
+	id_klienta INTEGER CONSTRAINT klienci_pk PRIMARY KEY,
+    nazwa TEXT(50),
+	nip TEXT(13),
+	telefon TEXT(20),
+	email TEXT(40),
+    ulica TEXT(30),
+    nr_domu TEXT(8),
+    nr_lokalu TEXT(4),
+    kod_pocztowy TEXT(6),
+    poczta TEXT(20)
+);
+--
+CREATE TABLE reprezentanci(
+    id_reprezentanta INTEGER CONSTRAINT reprezentanci_pk PRIMARY KEY,
+	id_klienta INTEGER CONSTRAINT reprezentanci_klienta REFERENCES klienci(id_klienta),
+    imie TEXT(20) CONSTRAINT reprezentanci_imie_nn NOT NULL,
+    nazwisko TEXT(20) CONSTRAINT reprezentanci_nazwisko_nn NOT NULL,
+	telefon TEXT(20),
+	email TEXT(40)
+);
+--
+CREATE TABLE pracownik(
+    id_pracownik INTEGER CONSTRAINT pracownik_pk PRIMARY KEY,
+    imie TEXT(20) CONSTRAINT pracownik_imie_nn NOT NULL,
+	nazwisko TEXT(20) CONSTRAINT pracownik_nazwisko_nn NOT NULL,
+    stanowisko TEXT(20)
+);
+--
+CREATE TABLE auta(
+	id_auta INTEGER CONSTRAINT auta_pk PRIMARY KEY,
+	nr_rejestracyjny TEXT(11) NOT NULL,
+	marka_model TEXT(30) NOT NULL,
+	rocznik DATE,
+	liczba_osob INTEGER,
+	przest_bagazowa decimal(8,2),
+	długosc decimal(8,2),
+	wysokosc decimal(8,2),
+	szerokosc decimal(8,2),
+	ladownosc decimal(8,2),
+	cena_wypoz_jeden_dzien decimal(8,2) NOT NULL,
+	dostepne INTEGER DEFAULT 1 CONSTRAINT auto_dostepne_ck CHECK (dostepne = 0 OR dostepne = 1)
+);
+--
+CREATE TABLE zamowienia(
+	id_zamowienia INTEGER CONSTRAINT zamowienia_pk PRIMARY KEY,
+	id_reprezentanta INTEGER CONSTRAINT zamowienia_reprezentant_klienta REFERENCES reprezentanci(id_reprezentanta),
+	id_pracownik INTEGER CONSTRAINT zamowienia_pracownik REFERENCES pracownik(id_pracownik),
+	id_auta  INTEGER CONSTRAINT zamowienia_auto REFERENCES auta(id_auta),	
+	data_zamowienia DATE,
+	data_wypozyczenia DATE,
+	data_zwrotu DATE,
+	rabat decimal(3,2),
+	uwagi TEXT(100)
+);
+--
+CREATE TABLE kierowcy(
+	id_kierowcy INTEGER CONSTRAINT kierowcy_pk PRIMARY KEY,
+	id_reprezentanta INTEGER CONSTRAINT kierowcy_klienta REFERENCES reprezentanci(id_reprezentanta),
+	pesel TEXT(11) NOT NULL,
+	nr_prawa_jazdy TEXT(8) NOT NULL,
+	nr_dowodu_os TEXT(10) NOT NULL
+);
+--	
+CREATE TABLE wydanie_auta(
+	id_zamowienia INTEGER CONSTRAINT wyd_auta_id_zam REFERENCES zamowienia(id_zamowienia),
+	data_wydania date NOT NULL,
+	godzina_wydania time NOT NULL,
+	id_kierowcy INTEGER CONSTRAINT wyd_auta_id_kierowcy REFERENCES kierowcy(id_kierowcy),
+	id_wydajacego_pojazd INTEGER CONSTRAINT wyd_auta_przez_pracownik REFERENCES pracownik(id_pracownik)
+);
+--
+CREATE TABLE zwrot_auta(
+	id_zamowienia INTEGER CONSTRAINT zwrot_auta_id_zam REFERENCES zamowienia(id_zamowienia),
+	data_zwrotu date NOT NULL,
+	godzina_zwrotu time NOT NULL,
+	id_kierowcy INTEGER CONSTRAINT zwrot_auta_id_kierowcy REFERENCES kierowcy(id_kierowcy),
+	id_przyjmujacego_pojazd INTEGER CONSTRAINT przyjecie_auta_przez_pracownik REFERENCES pracownik(id_pracownik),
+	doplata decimal(8,2),
+	uwagi TEXT(200)
+);	
+--
+CREATE TABLE rola_reprezentanta(
+	id_reprezentanta INTEGER CONSTRAINT rola_reprezentanta_id REFERENCES reprezentanci(id_reprezentanta),
+	rola TEXT(20) DEFAULT 'Zamawiajacy'
+);
+--
+CREATE TABLE stan_auta_info(
+	id_auta  INTEGER CONSTRAINT stan_auto_id REFERENCES auta(id_auta),	
+	stan_auta INTEGER DEFAULT 1 CONSTRAINT stan_auta_ck CHECK (stan_auta = 0 OR stan_auta = 1),
+--  1 - OK, 0 - uszkodzony
+	data_nastepnego_przegladu DATE NOT NULL
+);
