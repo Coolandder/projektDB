@@ -1,7 +1,8 @@
 # Autorent
 
 # Instalacja
-
+- Wystarczy Python i standarodowe biblioteki
+  
 # Technologia
 
 - Python Tkinter
